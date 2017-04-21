@@ -74,7 +74,7 @@ class Repeater extends BasicField implements FieldInterface
      */
     protected function fetchPostsMeta($fieldName, Post $post)
     {
-        $count = $this->fetchValue($fieldName, $post);
+        $count = (int) $this->fetchValue($fieldName, $post);
         $builder = $this->postMeta->where('post_id', $post->ID);
         $builder->where(function ($query) use ($count, $fieldName) {
             foreach (range(0, $count - 1) as $i) {
@@ -97,9 +97,13 @@ class Repeater extends BasicField implements FieldInterface
         foreach ($builder->get() as $meta) {
             $id = $this->retrieveIdFromFieldName($meta->meta_key, $fieldName);
             $name = $this->retrieveFieldName($meta->meta_key, $fieldName, $id);
-            
+
             $post = $this->post->ID != $meta->post_id ? $this->post->find($meta->post_id) : $this->post;
             $field = FieldFactory::make($meta->meta_key, $post);
+
+            if ($field == null) {
+                continue;
+            }
 
             $fields[$id][$name] = $field->get();
         }
